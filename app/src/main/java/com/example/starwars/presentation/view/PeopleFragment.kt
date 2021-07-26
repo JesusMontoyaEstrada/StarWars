@@ -1,12 +1,13 @@
 package com.example.starwars.presentation.view
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,29 +18,29 @@ import com.example.starwars.data.model.Planet
 import com.example.starwars.databinding.FragmentPeopleBinding
 import com.example.starwars.presentation.adapter.LoadStateAdapter
 import com.example.starwars.presentation.adapter.PeopleAdapter
-import com.example.starwars.presentation.viewmodel.FilmViewModel
 import com.example.starwars.presentation.viewmodel.PeopleViewModel
-import com.example.starwars.presentation.viewmodel.PlanetViewModel
-import kotlinx.coroutines.*
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class PeopleFragment : Fragment() {
 
-    lateinit var peopleViewModel: PeopleViewModel
+    private val peopleViewModel: PeopleViewModel by viewModels()
     private lateinit var binding : FragmentPeopleBinding
-    lateinit var peopleAdapter : PeopleAdapter
+    private var peopleAdapter : PeopleAdapter = PeopleAdapter()
     private var searchPeopleJob: Job? = null
 
 
-    lateinit var planetViewModel: PlanetViewModel
     var urlPlanetList : MutableList<String> = mutableListOf()
     var planetList : MutableList<Planet> = mutableListOf()
 
 
-    lateinit var filmViewModel: FilmViewModel
     var urlFilmList : MutableList<String> = mutableListOf()
     var filmList : MutableList<Film> = mutableListOf()
 
@@ -55,12 +56,9 @@ class PeopleFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentPeopleBinding.bind(view)
-        peopleViewModel = (activity as MainActivity).peopleViewModel
-        planetViewModel = (activity as MainActivity).planetViewModel
-        filmViewModel = (activity as MainActivity).filmViewModel
-        peopleAdapter = (activity as MainActivity).peopleAdapter
         peopleAdapter.updatedListListener { people, index ->
-
+//            updatePeopleFilm(people,index)
+//            updatePeoplePlanet(people, index)
         }
 
         initPeopleAdapter()
@@ -68,7 +66,7 @@ class PeopleFragment : Fragment() {
         managePeopleList()
         filterListener()
 
-        planetViewModel.planet.observe(viewLifecycleOwner, { modelResult ->
+        peopleViewModel.planet.observe(viewLifecycleOwner, { modelResult ->
             peopleAdapter.snapshot().forEachIndexed { index, people ->
                 people?.let {
                     if (people.planet == null && people.homeworld == modelResult.url){
@@ -80,7 +78,7 @@ class PeopleFragment : Fragment() {
             planetList.add(modelResult)
         })
 
-        filmViewModel.film.observe(viewLifecycleOwner, { modelResult ->
+        peopleViewModel.film.observe(viewLifecycleOwner, { modelResult ->
             filmList.add(modelResult)
             peopleAdapter.snapshot().forEachIndexed { peopleIndex, people ->
                 people?.let {
@@ -179,7 +177,9 @@ class PeopleFragment : Fragment() {
         searchPeopleJob?.cancel()
         searchPeopleJob = lifecycleScope.launch {
             peopleViewModel.getPeople(planet?.id, film?.id).collectLatest {
-                (activity as MainActivity).peopleAdapter.submitData(it)
+                peopleAdapter.submitData(it)
+                updatePeopleFilm()
+                updatePeoplePlanet()
             }
         }
     }
@@ -192,7 +192,7 @@ class PeopleFragment : Fragment() {
                     urlPlanetList.add(people.homeworld)
                     lifecycleScope.launch {
                         val id = people.homeworld.filter { it.isDigit() }
-                        planetViewModel.getPlanet(id.toLong())
+                        peopleViewModel.getPlanet(id.toLong())
                     }
                 } else {
                     val planet = planetList.find { it.url == people.homeworld }
@@ -214,7 +214,7 @@ class PeopleFragment : Fragment() {
                     if (addedUrl == null){
                         urlFilmList.add(filmString)
                         val id = filmString.filter { it.isDigit() }
-                        filmViewModel.getFilm(id.toLong())
+                        peopleViewModel.getFilm(id.toLong())
                     } else {
                         val film = filmList.find { it.url == filmString }
                         film?.let { film ->
@@ -229,17 +229,5 @@ class PeopleFragment : Fragment() {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

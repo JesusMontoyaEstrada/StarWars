@@ -71,7 +71,7 @@ class PeopleViewHolder(private val binding : PeopleItemViewBinding): RecyclerVie
         binding.tvMovies.text = movies
 
         PeopleAdapter.updatedList?.let {
-
+//            it(people, absoluteAdapterPosition)
         }
 
 

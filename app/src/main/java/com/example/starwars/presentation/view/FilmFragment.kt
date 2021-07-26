@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +16,7 @@ import com.example.starwars.databinding.FragmentFilmBinding
 import com.example.starwars.presentation.adapter.FilmAdapter
 import com.example.starwars.presentation.adapter.LoadStateAdapter
 import com.example.starwars.presentation.viewmodel.FilmViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -22,12 +24,13 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class FilmFragment : Fragment() {
 
-    lateinit var filmViewModel : FilmViewModel
+    private val filmViewModel : FilmViewModel by viewModels()
     private var searchFilmJob : Job? = null
     private lateinit var binding: FragmentFilmBinding
-    lateinit var filmAdapter: FilmAdapter
+    private var filmAdapter: FilmAdapter = FilmAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,8 +44,6 @@ class FilmFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentFilmBinding.bind(view)
-        filmViewModel = (activity as MainActivity).filmViewModel
-        filmAdapter = (activity as MainActivity).filmAdapter
         filmAdapter.setOnClickListener {
             (activity as MainActivity).setFilmValue(it)
         }
@@ -110,8 +111,7 @@ class FilmFragment : Fragment() {
         searchFilmJob?.cancel()
         searchFilmJob = lifecycleScope.launch {
             filmViewModel.getFilms().collectLatest {
-//                filmAdapter.submitData(it)
-                (activity as MainActivity).filmAdapter.submitData(it)
+                filmAdapter.submitData(it)
             }
         }
     }

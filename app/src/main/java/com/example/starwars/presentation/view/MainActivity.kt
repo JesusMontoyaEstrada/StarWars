@@ -21,16 +21,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    val filmViewModel : FilmViewModel by viewModels()
-    var filmAdapter = FilmAdapter()
     private var selectedFilm : Film? = null
 
-    val planetViewModel: PlanetViewModel by viewModels()
-    var planetAdapter = PlanetAdapter()
     private var selectedPlanet : Planet? = null
-
-    val peopleViewModel: PeopleViewModel by viewModels()
-    var peopleAdapter = PeopleAdapter()
 
     lateinit var binding : ActivityMainBinding
 

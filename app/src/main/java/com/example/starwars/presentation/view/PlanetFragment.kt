@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +16,7 @@ import com.example.starwars.databinding.FragmentPlanetBinding
 import com.example.starwars.presentation.adapter.LoadStateAdapter
 import com.example.starwars.presentation.adapter.PlanetAdapter
 import com.example.starwars.presentation.viewmodel.PlanetViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -22,12 +24,13 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class PlanetFragment : Fragment() {
 
-    lateinit var planetViewModel : PlanetViewModel
+    private val planetViewModel : PlanetViewModel by viewModels()
     private var searchPlanetJob : Job? = null
     private lateinit var binding: FragmentPlanetBinding
-    lateinit var planetAdapter: PlanetAdapter
+    private var planetAdapter: PlanetAdapter = PlanetAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,8 +44,6 @@ class PlanetFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentPlanetBinding.bind(view)
-        planetViewModel = (activity as MainActivity).planetViewModel
-        planetAdapter = (activity as MainActivity).planetAdapter
         planetAdapter.setOnClickListener {
             (activity as MainActivity).setPlanetValue(it)
         }
@@ -111,8 +112,7 @@ class PlanetFragment : Fragment() {
         searchPlanetJob?.cancel()
         searchPlanetJob = lifecycleScope.launch {
             planetViewModel.getPlanets().collectLatest {
-//                planetAdapter.submitData(it)
-                (activity as MainActivity).planetAdapter.submitData(it)
+                planetAdapter.submitData(it)
             }
         }
     }
