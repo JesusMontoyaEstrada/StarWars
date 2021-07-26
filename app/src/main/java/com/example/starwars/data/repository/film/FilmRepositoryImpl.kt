@@ -23,8 +23,8 @@ class FilmRepositoryImpl(
         ).flow
     }
 
-    override suspend fun getItem(id: String): Film {
-        TODO("Not yet implemented")
+    override suspend fun getItem(id: Long): Film {
+        return service.getItem(id)
     }
 
 }

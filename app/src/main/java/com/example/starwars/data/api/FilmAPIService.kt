@@ -13,8 +13,8 @@ interface FilmAPIService {
         @Query("page") page : Int? = null,
     ) : APIResponse<Film>
 
-    @GET("{id}")
+    @GET("films/{id}")
     suspend fun getItem(
-        @Path("id") id : String
+        @Path("id") id : Long
     ) : Film
 }

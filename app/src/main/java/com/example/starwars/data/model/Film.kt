@@ -9,7 +9,7 @@ data class Film(
     @Expose
     var id : Long,
 
-    @SerializedName("name")
+    @SerializedName("title")
     var name : String,
 
     @SerializedName("url")

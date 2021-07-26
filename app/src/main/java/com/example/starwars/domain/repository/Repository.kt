@@ -6,5 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface Repository<T : Any> {
 
     fun getResultStream() : Flow<PagingData<T>>
-    suspend fun getItem(id: String) : T
+    suspend fun getItem(id: Long) : T
 }

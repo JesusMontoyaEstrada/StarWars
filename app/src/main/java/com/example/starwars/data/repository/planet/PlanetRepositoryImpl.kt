@@ -23,7 +23,7 @@ class PlanetRepositoryImpl(
         ).flow
     }
 
-    override suspend fun getItem(id: String): Planet {
-        TODO("Not yet implemented")
+    override suspend fun getItem(id: Long): Planet {
+        return service.getItem(id)
     }
 }

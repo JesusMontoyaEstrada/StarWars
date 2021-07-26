@@ -15,9 +15,6 @@ import java.lang.Exception
 class PeoplePagingSource(
     private val service : PeopleAPIService,
     private val planet : Long? = null, private val film : Long? = null
-//    ,
-//    private val planetList : List<Planet>, private val filmList : List<Film>,
-//    private val planetRepo : Repository<Planet>, private val filmRepo : Repository<Film>
 ) : PagingSource<Int, People>(){
     override fun getRefreshKey(state: PagingState<Int, People>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
@@ -32,47 +29,17 @@ class PeoplePagingSource(
 
             val response = service.getList(page, planet, film)
 
-            ////Mover a View Model
-
-//            response.results.forEach { people ->
-//                planetList.forEach { temporalPlanet ->
-//                    if(people.homeworld == temporalPlanet.url){
-//                        people.planet = temporalPlanet
-//                    }
-//                }
-//
-//                if(people.planet == null){
-//                    people.planet = planetRepo.getItem(people.homeworld)
-//                }
-//            }
-//
-//            response.results.forEach { people ->
-//               people.films.forEachIndexed { index, filmString ->
-//                   filmList.forEach { temporalFilm ->
-//                       if(filmString == temporalFilm.url){
-//                           people.movies.add(temporalFilm)
-//                       }
-//                   }
-//
-//                   if(people.movies.size != index.plus(1)){
-//                       people.movies.add(null)
-//                   }
-//               }
-//
-//                if(people.movies.size != people.films.size){
-//                    people.movies.forEachIndexed { index, film ->
-//                        if(film == null){
-//                             people.movies[index] = filmRepo.getItem(people.films[index])
-//                        }
-//
-//                    }
-//                }
-//            }
+            response.results.forEachIndexed { index, people ->
+                var newID = page.minus(1)
+                newID = newID.times(10)
+                people.id = newID.plus(index.plus(1)).toLong()
+                people.movies = mutableListOf()
+            }
 
             val nextKey = if (response.next == null) {
                 null
             } else {
-                page + (params.loadSize / NetworkConstants.DEFAULT_STARTING_PAGE_INDEX)
+                page + 1
             }
             LoadResult.Page(
                 data = response.results,

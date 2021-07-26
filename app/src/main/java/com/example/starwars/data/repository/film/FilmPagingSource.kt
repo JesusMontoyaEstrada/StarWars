@@ -26,9 +26,11 @@ class FilmPagingSource(
 
             val response = service.getList(page)
 
-//            response.results.forEachIndexed { index, film ->
-//                film.id = ((((page.minus(1))).times(10)).plus(index.plus(1)).toLong())
-//            }
+            response.results.forEachIndexed { index, film ->
+                var newID = page.minus(1)
+                newID = newID.times(10)
+                film.id = newID.plus(index.plus(1)).toLong()
+            }
 
             val nextKey = if (response.next == null) {
                 null

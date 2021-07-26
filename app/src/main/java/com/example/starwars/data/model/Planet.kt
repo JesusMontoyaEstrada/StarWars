@@ -4,15 +4,15 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-data class Planet(
+data class Planet (
 
     @Expose
-    var id : Long,
+    var id: Long,
 
     @SerializedName("name")
-    var name : String,
+    var name: String,
 
     @SerializedName("url")
-    var url : String
+    var url: String
 
 ) : Serializable

@@ -18,17 +18,13 @@ class PeopleRepositoryImpl(
 ) : PeopleRepository{
 
     override fun getResultStream(planet: Long?, film: Long?
-//                                 , planetList: List<Planet>, filmList : List<Film>,
-//                                 planetRepo: Repository<Planet>, filmRepo: Repository<Film>
     ): Flow<PagingData<People>> {
         return Pager(
             config = PagingConfig(
                 pageSize = NetworkConstants.DEFAULT_PAGE_SIZE,
                 initialLoadSize = NetworkConstants.DEFAULT_PAGE_SIZE
             ),
-            pagingSourceFactory = { PeoplePagingSource(service, planet, film
-//                , planetList, filmList, planetRepo, filmRepo
-            ) }
+            pagingSourceFactory = { PeoplePagingSource(service, planet, film ) }
         ).flow
     }
 }

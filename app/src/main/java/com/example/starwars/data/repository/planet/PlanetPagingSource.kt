@@ -25,13 +25,17 @@ class PlanetPagingSource(
         return try {
 
             val response = service.getList(page)
-//            response.results.forEachIndexed { index, planet ->
-//                planet.id = ((((page.minus(1))).times(10)).plus(index.plus(1)).toLong())
-//            }
+
+            response.results.forEachIndexed { index, planet ->
+                var newID = page.minus(1)
+                newID = newID.times(10)
+                planet.id = newID.plus(index.plus(1)).toLong()
+            }
+
             val nextKey = if (response.next == null) {
                 null
             } else {
-                page + (params.loadSize / NetworkConstants.DEFAULT_STARTING_PAGE_INDEX)
+                page + 1
             }
             LoadResult.Page(
                 data = response.results,

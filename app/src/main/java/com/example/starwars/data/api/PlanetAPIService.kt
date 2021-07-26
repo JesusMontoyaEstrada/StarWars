@@ -13,9 +13,9 @@ interface PlanetAPIService {
         @Query("page") page : Int? = null,
     ) : APIResponse<Planet>
 
-    @GET("{id}")
+    @GET("planets/{id}")
     suspend fun getItem(
-        @Path("id") id : String
+        @Path("id") id : Long
     ) : Planet
 
 }
