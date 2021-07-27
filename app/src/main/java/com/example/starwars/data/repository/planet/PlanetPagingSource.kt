@@ -5,12 +5,13 @@ import androidx.paging.PagingState
 import com.example.starwars.data.api.PlanetAPIService
 import com.example.starwars.data.model.Planet
 import com.example.starwars.data.repository.NetworkConstants
+import com.example.starwars.domain.repository.PlanetRepository
 import retrofit2.HttpException
 import java.io.IOException
 import java.lang.Exception
 
 class PlanetPagingSource(
-    private val service : PlanetAPIService
+    private val planetRepository: PlanetRepository
 ) : PagingSource<Int, Planet>(){
 
     override fun getRefreshKey(state: PagingState<Int, Planet>): Int? {
@@ -24,13 +25,7 @@ class PlanetPagingSource(
         val page = params.key ?: NetworkConstants.DEFAULT_STARTING_PAGE_INDEX
         return try {
 
-            val response = service.getList(page)
-
-            response.results.forEachIndexed { index, planet ->
-                var newID = page.minus(1)
-                newID = newID.times(10)
-                planet.id = newID.plus(index.plus(1)).toLong()
-            }
+            val response = planetRepository.getPlanetByPage(page)
 
             val nextKey = if (response.next == null) {
                 null

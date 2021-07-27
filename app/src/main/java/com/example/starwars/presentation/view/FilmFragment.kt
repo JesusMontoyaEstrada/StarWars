@@ -1,12 +1,14 @@
 package com.example.starwars.presentation.view
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
@@ -16,6 +18,7 @@ import com.example.starwars.databinding.FragmentFilmBinding
 import com.example.starwars.presentation.adapter.FilmAdapter
 import com.example.starwars.presentation.adapter.LoadStateAdapter
 import com.example.starwars.presentation.viewmodel.FilmViewModel
+import com.example.starwars.presentation.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -28,6 +31,7 @@ import kotlinx.coroutines.launch
 class FilmFragment : Fragment() {
 
     private val filmViewModel : FilmViewModel by viewModels()
+    private val sharedViewModels: SharedViewModel by activityViewModels()
     private var searchFilmJob : Job? = null
     private lateinit var binding: FragmentFilmBinding
     private var filmAdapter: FilmAdapter = FilmAdapter()
@@ -44,13 +48,18 @@ class FilmFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentFilmBinding.bind(view)
-        filmAdapter.setOnClickListener {
-            (activity as MainActivity).setFilmValue(it)
-        }
-
         initFilmAdapter()
         manageFilmList()
         searchFilm()
+
+        filmAdapter.setOnClickListener {
+            Log.i("Selected",it.name)
+            sharedViewModels.selectedFilm.postValue(it)
+        }
+
+        binding.filmRetryButton.setOnClickListener {
+            searchFilm()
+        }
     }
 
     private fun initFilmAdapter(){

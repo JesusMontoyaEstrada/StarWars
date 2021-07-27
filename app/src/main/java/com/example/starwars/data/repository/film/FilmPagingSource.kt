@@ -2,16 +2,16 @@ package com.example.starwars.data.repository.film
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.starwars.data.api.FilmAPIService
 import com.example.starwars.data.model.Film
-import com.example.starwars.data.model.Planet
 import com.example.starwars.data.repository.NetworkConstants
+import com.example.starwars.domain.repository.FilmRepository
+import com.example.starwars.domain.usecase.GetFilmsByPageUseCase
 import retrofit2.HttpException
 import java.io.IOException
 import java.lang.Exception
 
 class FilmPagingSource(
-    private val service : FilmAPIService
+    private val filmRepository : FilmRepository
 ) : PagingSource<Int, Film>(){
     override fun getRefreshKey(state: PagingState<Int, Film>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
@@ -24,13 +24,7 @@ class FilmPagingSource(
         val page = params.key ?: NetworkConstants.DEFAULT_STARTING_PAGE_INDEX
         return try {
 
-            val response = service.getList(page)
-
-            response.results.forEachIndexed { index, film ->
-                var newID = page.minus(1)
-                newID = newID.times(10)
-                film.id = newID.plus(index.plus(1)).toLong()
-            }
+            val response = filmRepository.getFilmByPage(page)
 
             val nextKey = if (response.next == null) {
                 null

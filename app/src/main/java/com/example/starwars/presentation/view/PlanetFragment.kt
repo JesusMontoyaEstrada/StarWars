@@ -1,12 +1,14 @@
 package com.example.starwars.presentation.view
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
@@ -16,6 +18,7 @@ import com.example.starwars.databinding.FragmentPlanetBinding
 import com.example.starwars.presentation.adapter.LoadStateAdapter
 import com.example.starwars.presentation.adapter.PlanetAdapter
 import com.example.starwars.presentation.viewmodel.PlanetViewModel
+import com.example.starwars.presentation.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -27,7 +30,8 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class PlanetFragment : Fragment() {
 
-    private val planetViewModel : PlanetViewModel by viewModels()
+    private val planetViewModel : PlanetViewModel  by viewModels()
+    private val sharedViewModel : SharedViewModel by activityViewModels()
     private var searchPlanetJob : Job? = null
     private lateinit var binding: FragmentPlanetBinding
     private var planetAdapter: PlanetAdapter = PlanetAdapter()
@@ -44,13 +48,19 @@ class PlanetFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentPlanetBinding.bind(view)
-        planetAdapter.setOnClickListener {
-            (activity as MainActivity).setPlanetValue(it)
-        }
 
         initPlanetAdapter()
         managePlanetList()
         searchPlanet()
+
+        planetAdapter.setOnClickListener {
+            Log.i("Selected",it.name)
+            sharedViewModel.selectedPlanet.value = it
+        }
+
+        binding.planetRetryButton.setOnClickListener {
+            searchPlanet()
+        }
     }
 
     //Planet RV

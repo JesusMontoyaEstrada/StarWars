@@ -15,20 +15,18 @@ import com.example.starwars.presentation.adapter.PlanetAdapter
 import com.example.starwars.presentation.viewmodel.FilmViewModel
 import com.example.starwars.presentation.viewmodel.PeopleViewModel
 import com.example.starwars.presentation.viewmodel.PlanetViewModel
+import com.example.starwars.presentation.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private var selectedFilm : Film? = null
-
-    private var selectedPlanet : Planet? = null
-
     lateinit var binding : ActivityMainBinding
 
     var filterView : Boolean = false
 
+    val sharedViewModel: SharedViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,57 +48,36 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        sharedViewModel.selectedPlanet.observe(this, { planet ->
+            planet?.let {
+                binding.planetChip.text = it.name
+                binding.planetChip.visibility = View.VISIBLE
+            }
+        })
+
+        sharedViewModel.selectedFilm.observe(this, { film ->
+            film?.let {
+                binding.filmChip.text = it.name
+                binding.filmChip.visibility = View.VISIBLE
+            }
+        })
+
         chipListener()
     }
 
-    fun setPlanetValue(planet : Planet?){
-        selectedPlanet = planet
-        planet?.let { it ->
-            binding.planetChip.text = it.name
-            binding.planetChip.visibility = View.VISIBLE
-        }
-    }
-
-    fun getPlanetValue() : Planet? {
-        return selectedPlanet
-    }
-
-    fun setFilmValue(film : Film?){
-        selectedFilm = film
-        film?.let {
-            binding.filmChip.text = film.name
-            binding.filmChip.visibility = View.VISIBLE
-        }
-    }
-
-    fun getFilmValue() : Film?{
-        return selectedFilm
-    }
 
     private fun chipListener(){
         binding.filmChip.setOnCloseIconClickListener {
-            setFilmValue(null)
+            sharedViewModel.selectedFilm.postValue(null)
             binding.filmChip.visibility = View.INVISIBLE
             binding.filmChip.text = ""
-            updateFilters()
         }
 
         binding.planetChip.setOnCloseIconClickListener {
-            setPlanetValue(null)
+            sharedViewModel.selectedPlanet.postValue(null)
             binding.planetChip.visibility = View.INVISIBLE
             binding.planetChip.text = ""
-            updateFilters()
         }
     }
 
-    fun updateFilters(){
-        val navHost = supportFragmentManager.findFragmentById(R.id.fragment)
-        navHost?.let { navFragment ->
-            navFragment.childFragmentManager.primaryNavigationFragment?.let { fragment->
-                if(fragment is PeopleFragment){
-                    fragment.filterListener(getPlanetValue(), getFilmValue())
-                }
-            }
-        }
-    }
 }

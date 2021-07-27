@@ -7,8 +7,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.liveData
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.starwars.R
@@ -19,30 +21,21 @@ import com.example.starwars.databinding.FragmentPeopleBinding
 import com.example.starwars.presentation.adapter.LoadStateAdapter
 import com.example.starwars.presentation.adapter.PeopleAdapter
 import com.example.starwars.presentation.viewmodel.PeopleViewModel
+import com.example.starwars.presentation.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class PeopleFragment : Fragment() {
 
     private val peopleViewModel: PeopleViewModel by viewModels()
+    private val sharedViewModels: SharedViewModel by activityViewModels()
     private lateinit var binding : FragmentPeopleBinding
     private var peopleAdapter : PeopleAdapter = PeopleAdapter()
     private var searchPeopleJob: Job? = null
-
-
-    var urlPlanetList : MutableList<String> = mutableListOf()
-    var planetList : MutableList<Planet> = mutableListOf()
-
-
-    var urlFilmList : MutableList<String> = mutableListOf()
-    var filmList : MutableList<Film> = mutableListOf()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,43 +49,18 @@ class PeopleFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentPeopleBinding.bind(view)
-        peopleAdapter.updatedListListener { people, index ->
-//            updatePeopleFilm(people,index)
-//            updatePeoplePlanet(people, index)
-        }
 
         initPeopleAdapter()
-        searchPeople((activity as MainActivity).getPlanetValue(), (activity as MainActivity).getFilmValue())
         managePeopleList()
         filterListener()
 
-        peopleViewModel.planet.observe(viewLifecycleOwner, { modelResult ->
-            peopleAdapter.snapshot().forEachIndexed { index, people ->
-                people?.let {
-                    if (people.planet == null && people.homeworld == modelResult.url){
-                        people.planet = modelResult
-                        peopleAdapter.notifyItemChanged(index)
-                    }
-                }
-            }
-            planetList.add(modelResult)
+        sharedViewModels.filters.observe(viewLifecycleOwner, {
+            searchPeople(it.first, it.second)
         })
 
-        peopleViewModel.film.observe(viewLifecycleOwner, { modelResult ->
-            filmList.add(modelResult)
-            peopleAdapter.snapshot().forEachIndexed { peopleIndex, people ->
-                people?.let {
-                    people.films.forEach { filmString ->
-                        val movie = people.movies.find { it.url == modelResult.url }
-                        if(filmString == modelResult.url && movie == null){
-                            people.movies.add(modelResult)
-                        }
-                    }
-                }
-                peopleAdapter.notifyItemChanged(peopleIndex)
-            }
-        })
-
+        binding.retryBttn.setOnClickListener {
+            searchPeople(sharedViewModels.filters.value?.first, sharedViewModels.filters.value?.second)
+        }
 
     }
 
@@ -146,23 +114,6 @@ class PeopleFragment : Fragment() {
                 .filter { it.refresh is LoadState.NotLoading }
                 .collect { binding.rvPeople.scrollToPosition(0) }
         }
-
-        lifecycleScope.launch {
-            peopleAdapter.loadStateFlow
-                .distinctUntilChangedBy { it.refresh }
-                .filter { it.refresh is LoadState.NotLoading }
-                .collect { updatePeoplePlanet() }
-        }
-
-
-        lifecycleScope.launch {
-            peopleAdapter.loadStateFlow
-                .distinctUntilChangedBy { it.refresh }
-                .filter { it.refresh is LoadState.NotLoading }
-                .collect { updatePeopleFilm() }
-        }
-
-
     }
 
     fun filterListener(planet : Planet? = null, film : Film? = null){
@@ -178,56 +129,7 @@ class PeopleFragment : Fragment() {
         searchPeopleJob = lifecycleScope.launch {
             peopleViewModel.getPeople(planet?.id, film?.id).collectLatest {
                 peopleAdapter.submitData(it)
-                updatePeopleFilm()
-                updatePeoplePlanet()
             }
         }
     }
-
-    private fun updatePeoplePlanet(){
-        peopleAdapter.snapshot().forEachIndexed{ index, people ->
-            people?.let {
-                val addedUrl = urlPlanetList.find { it == people.homeworld }
-                if(people.planet == null && addedUrl == null){
-                    urlPlanetList.add(people.homeworld)
-                    lifecycleScope.launch {
-                        val id = people.homeworld.filter { it.isDigit() }
-                        peopleViewModel.getPlanet(id.toLong())
-                    }
-                } else {
-                    val planet = planetList.find { it.url == people.homeworld }
-                    planet?.let {
-                        people.planet = it
-                        peopleAdapter.notifyItemChanged(index)
-                    }
-                }
-
-            }
-        }
-    }
-
-    private fun updatePeopleFilm(){
-        peopleAdapter.snapshot().forEachIndexed { peopleIndex, people ->
-            people?.let {
-                people.films.forEachIndexed { filmIndex, filmString ->
-                    var addedUrl = urlFilmList.find { it == filmString }
-                    if (addedUrl == null){
-                        urlFilmList.add(filmString)
-                        val id = filmString.filter { it.isDigit() }
-                        peopleViewModel.getFilm(id.toLong())
-                    } else {
-                        val film = filmList.find { it.url == filmString }
-                        film?.let { film ->
-                            var movie = people.movies.find { it.url == filmString }
-                            if(movie == null){
-                                people.movies.add(film)
-                            }
-                        }
-                    }
-                }
-                peopleAdapter.notifyItemChanged(peopleIndex)
-            }
-        }
-    }
-
 }

@@ -35,9 +35,6 @@ class PeopleAdapter : PagingDataAdapter<People, PeopleViewHolder>(PEOPLE_COMPARA
         var updatedList : ((People, Int)-> Unit) ? = null
     }
 
-    fun updatedListListener(listener : (People, Int) -> Unit){
-        updatedList = listener
-    }
 }
 
 
@@ -69,11 +66,6 @@ class PeopleViewHolder(private val binding : PeopleItemViewBinding): RecyclerVie
         }
 
         binding.tvMovies.text = movies
-
-        PeopleAdapter.updatedList?.let {
-//            it(people, absoluteAdapterPosition)
-        }
-
 
     }
 

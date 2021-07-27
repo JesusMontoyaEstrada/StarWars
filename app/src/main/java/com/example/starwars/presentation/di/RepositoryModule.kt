@@ -8,7 +8,9 @@ import com.example.starwars.data.model.Planet
 import com.example.starwars.data.repository.film.FilmRepositoryImpl
 import com.example.starwars.data.repository.people.PeopleRepositoryImpl
 import com.example.starwars.data.repository.planet.PlanetRepositoryImpl
+import com.example.starwars.domain.repository.FilmRepository
 import com.example.starwars.domain.repository.PeopleRepository
+import com.example.starwars.domain.repository.PlanetRepository
 import com.example.starwars.domain.repository.Repository
 import dagger.Module
 import dagger.Provides
@@ -23,19 +25,19 @@ class RepositoryModule {
 
     @Singleton
     @Provides
-    fun providerPeopleRepository(peopleAPIService: PeopleAPIService) : PeopleRepository {
-        return PeopleRepositoryImpl(peopleAPIService)
-    }
-
-    @Singleton
-    @Provides
-    fun providerFilmRepository(filmAPIService: FilmAPIService) : Repository<Film> {
+    fun providerFilmRepository(filmAPIService: FilmAPIService) : FilmRepository {
         return FilmRepositoryImpl(filmAPIService)
     }
 
     @Singleton
     @Provides
-    fun providerPlanetRepository(planetAPIService: PlanetAPIService) : Repository<Planet> {
+    fun providerPlanetRepository(planetAPIService: PlanetAPIService) : PlanetRepository {
         return PlanetRepositoryImpl(planetAPIService)
+    }
+
+    @Singleton
+    @Provides
+    fun providerPeopleRepository(peopleAPIService: PeopleAPIService, planetRepository : PlanetRepository, filmRepository : FilmRepository) : PeopleRepository {
+        return PeopleRepositoryImpl(peopleAPIService, planetRepository, filmRepository)
     }
 }
